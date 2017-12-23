@@ -6,7 +6,9 @@
 
 namespace Mlo\FactoryBot;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Faker\Generator as Faker;
+use Mlo\FactoryBot\Storage\DoctrineStorage;
 use Mlo\FactoryBot\Storage\NullStorage;
 use Mlo\FactoryBot\Storage\StorageInterface;
 
@@ -56,13 +58,27 @@ class FactoryBuilder
     }
 
     /**
+     * Store with Doctrine's entity manager
+     *
+     * @param EntityManagerInterface $entityManager
+     *
+     * @return FactoryBuilder
+     */
+    public function storeWithDoctrine(EntityManagerInterface $entityManager): self
+    {
+        $this->storage = new DoctrineStorage($entityManager);
+
+        return $this;
+    }
+
+    /**
      * Set factory paths
      *
      * @param array ...$paths
      *
      * @return FactoryBuilder
      */
-    public function setFactoryPath(...$paths): self
+    public function loadFactories(...$paths): self
     {
         $this->paths = $paths;
 
