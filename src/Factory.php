@@ -191,7 +191,8 @@ class Factory
                 return new $class();
             },
             $this->faker,
-            $this->storage
+            $this->storage,
+            $this->callbacks[$class][$name] ?? null
         );
     }
 

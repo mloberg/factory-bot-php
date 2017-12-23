@@ -4,7 +4,7 @@
  * Distributed under the MIT License (http://opensource.org/licenses/MIT)
  */
 
-namespace Mlo\FactoryBot;
+namespace Mlo\FactoryBot\Fixture;
 
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
@@ -21,16 +21,12 @@ class Hydrator
      *
      * @param object $instance
      * @param array  $attributes
-     *
-     * @return object
      */
     public function __invoke($instance, array $attributes)
     {
         foreach ($attributes as $property => $value) {
             $this->setProperty($instance, $property, $value);
         }
-
-        return $instance;
     }
 
     /**

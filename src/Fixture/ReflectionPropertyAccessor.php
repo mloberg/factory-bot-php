@@ -4,7 +4,7 @@
  * Distributed under the MIT License (http://opensource.org/licenses/MIT)
  */
 
-namespace Mlo\FactoryBot;
+namespace Mlo\FactoryBot\Fixture;
 
 use Closure;
 use ReflectionClass;

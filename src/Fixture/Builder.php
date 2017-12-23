@@ -6,7 +6,6 @@
 
 namespace Mlo\FactoryBot\Fixture;
 
-use Mlo\FactoryBot\Hydrator;
 use Mlo\FactoryBot\Storage\StorageInterface;
 use Faker\Generator as Faker;
 
@@ -230,7 +229,13 @@ class Builder
         $instance = call_user_func($this->instantiator, $this->faker);
         $definition = $this->getRawAttributes($attributes);
 
-        return (new Hydrator())($instance, $definition);
+        (new Hydrator())($instance, $definition);
+
+        if ($this->callback) {
+            call_user_func($this->callback, $instance);
+        }
+
+        return $instance;
     }
 
     /**
