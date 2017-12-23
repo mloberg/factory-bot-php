@@ -13,6 +13,8 @@ cache:
   directories:
     - $HOME/.composer
 
+install: composer install --ansi --prefer-dist --no-interaction --optimize-autoloader --no-suggest --no-progress
+
 before_script:
   - mysql -e 'CREATE DATABASE test;'
   - vendor/bin/doctrine orm:schema-tool:drop --force
