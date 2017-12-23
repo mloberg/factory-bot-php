@@ -1,0 +1,32 @@
+{
+    "name": "mlo/factory-bot",
+    "description": "Create fixtures for testing",
+    "keywords": ["testing", "factory", "fixture"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Matthew Loberg",
+            "email": "loberg.matt@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.1",
+        "fzaninotto/faker": "^1.7",
+        "symfony/finder": "^4.0",
+        "symfony/property-access": "^4.0"
+    },
+    "require-dev": {
+        "doctrine/orm": "^2.6"
+    },
+    "suggest": {
+        "doctrine/orm": "If you want to store fixtures using Doctrine"
+    },
+    "autoload": {
+        "psr-4": {
+            "Mlo\\FactoryBot\\": "src/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
