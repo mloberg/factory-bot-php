@@ -16,7 +16,8 @@
         "symfony/property-access": "^4.0"
     },
     "require-dev": {
-        "doctrine/orm": "^2.6"
+        "doctrine/orm": "^2.6",
+        "phpunit/phpunit": "^6.5"
     },
     "suggest": {
         "doctrine/orm": "If you want to store fixtures using Doctrine"
@@ -24,6 +25,11 @@
     "autoload": {
         "psr-4": {
             "Mlo\\FactoryBot\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Mlo\\FactoryBot\\Test\\": "tests/"
         }
     },
     "config": {

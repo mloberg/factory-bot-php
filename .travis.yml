@@ -1,0 +1,19 @@
+language: php
+
+php:
+  - '7.1'
+  - '7.2'
+
+sudo: false
+
+services:
+  - mysql
+
+cache:
+  directories:
+    - $HOME/.composer
+
+before_script:
+  - mysql -e 'CREATE DATABASE test;'
+  - vendor/bin/doctrine orm:schema-tool:drop --force
+  - vendor/bin/doctrine orm:schema-tool:create
