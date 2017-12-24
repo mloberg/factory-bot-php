@@ -10,8 +10,6 @@ interface StorageInterface
      * Persist object
      *
      * @param object $fixture
-     *
-     * @return void
      */
     public function save($fixture);
 }

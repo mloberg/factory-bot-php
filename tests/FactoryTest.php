@@ -118,7 +118,9 @@ class FactoryTest extends TestCase
     {
         $called = false;
 
-        $this->factory->define(Foo::class, function () { return []; });
+        $this->factory->define(Foo::class, function () {
+            return [];
+        });
         $factory = $this->factory->callback(Foo::class, function (Foo $foo) use (&$called) {
             $called = true;
         });
@@ -132,7 +134,9 @@ class FactoryTest extends TestCase
 
     public function testCreate()
     {
-        $this->factory->define(Foo::class, function () { return ['foo' => 'foo']; });
+        $this->factory->define(Foo::class, function () {
+            return ['foo' => 'foo'];
+        });
 
         $fixture = $this->factory->create(Foo::class, ['bar' => 'bar']);
 
@@ -143,7 +147,9 @@ class FactoryTest extends TestCase
 
     public function testMake()
     {
-        $this->factory->define(Foo::class, function () { return ['foo' => 'foo']; });
+        $this->factory->define(Foo::class, function () {
+            return ['foo' => 'foo'];
+        });
 
         $fixture = $this->factory->make(Foo::class, ['baz' => 'baz']);
 
@@ -154,7 +160,9 @@ class FactoryTest extends TestCase
 
     public function testBuild()
     {
-        $this->factory->define(Foo::class, function () { return ['foo' => 'foo']; });
+        $this->factory->define(Foo::class, function () {
+            return ['foo' => 'foo'];
+        });
 
         $builder = $this->factory->build(Foo::class);
 
@@ -176,7 +184,9 @@ class FactoryTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        $this->factory->define('foo', function () { return []; }, 'bar');
+        $this->factory->define('foo', function () {
+            return [];
+        }, 'bar');
 
         $this->factory->build('foo');
     }
