@@ -1,8 +1,6 @@
 <?php
-/**
- * Copyright (c) 2017 Matthew Loberg
- * Distributed under the MIT License (http://opensource.org/licenses/MIT)
- */
+
+declare(strict_types=1);
 
 use Faker\Generator as Faker;
 

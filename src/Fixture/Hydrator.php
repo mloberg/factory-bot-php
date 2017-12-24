@@ -4,6 +4,8 @@
  * Distributed under the MIT License (http://opensource.org/licenses/MIT)
  */
 
+declare(strict_types=1);
+
 namespace Mlo\FactoryBot\Fixture;
 
 use Symfony\Component\PropertyAccess\PropertyAccess;
