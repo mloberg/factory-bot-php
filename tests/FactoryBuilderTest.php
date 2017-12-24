@@ -34,7 +34,9 @@ class FactoryBuilderTest extends TestCase
 
         $this->assertInstanceOf(Factory::class, $factory);
 
-        $factory->define(Foo::class, function () { return ['foo' => 'foobar']; });
+        $factory->define(Foo::class, function () {
+            return ['foo' => 'foobar'];
+        });
 
         $fixture = $factory(Foo::class)->create();
 
