@@ -9,7 +9,7 @@ disabled:
   - phpdoc_summary
 
 finder:
-  excludes:
+  not-path:
     - "tests/factories"
   not-name:
     - "bootstrap.php"
