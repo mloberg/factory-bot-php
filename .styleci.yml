@@ -1,0 +1,6 @@
+preset: symfony
+
+risky: true
+
+enabled:
+  - declare_strict_types
