@@ -46,6 +46,15 @@ class FunctionalTest extends TestCase
         $this->assertEquals(0, strpos($fixture->getBar(), 'bar_'));
     }
 
+    public function testMakeMultiple()
+    {
+        $fixtures = $this->factory->build(Foo::class)->times(2)->make();
+
+        $this->assertCount(2, $fixtures);
+        $this->assertInstanceOf(Foo::class, $fixtures[0]);
+        $this->assertInstanceOf(Foo::class, $fixtures[1]);
+    }
+
     /**
      * @group database
      */
@@ -60,6 +69,20 @@ class FunctionalTest extends TestCase
         $this->assertEquals(100, $user->getId());
 
         $this->assertSame($user, $this->entityManger->find(User::class, 100));
+
+        $this->entityManger->rollback();
+    }
+
+    /**
+     * @group database
+     */
+    public function testDoctrineWillAssignIdIfNoneSet()
+    {
+        $this->entityManger->beginTransaction();
+
+        $user = $this->factory->create(User::class);
+
+        $this->assertNotNull($user->getId());
 
         $this->entityManger->rollback();
     }
