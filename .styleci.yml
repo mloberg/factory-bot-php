@@ -4,7 +4,13 @@ risky: true
 
 enabled:
   - declare_strict_types
-  - blank_line_before_declare
 
 disabled:
   - phpdoc_summary
+
+finder:
+  excludes:
+    - "tests/factories"
+  not-name:
+    - "bootstrap.php"
+    - "cli-config.php"
