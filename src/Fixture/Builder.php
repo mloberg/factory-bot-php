@@ -74,13 +74,13 @@ class Builder
         StorageInterface $storage,
         callable $callback = null
     ) {
-        $this->class        = $class;
-        $this->definition   = $definition;
-        $this->states       = $states;
+        $this->class = $class;
+        $this->definition = $definition;
+        $this->states = $states;
         $this->instantiator = $instantiator;
-        $this->faker        = $faker;
-        $this->storage      = $storage;
-        $this->callback     = $callback;
+        $this->faker = $faker;
+        $this->storage = $storage;
+        $this->callback = $callback;
     }
 
     /**
