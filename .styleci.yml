@@ -11,6 +11,7 @@ disabled:
 finder:
   not-path:
     - "tests/factories"
+    - "tests/Model"
   not-name:
     - "bootstrap.php"
     - "cli-config.php"
