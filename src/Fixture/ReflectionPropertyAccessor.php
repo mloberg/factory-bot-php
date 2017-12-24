@@ -21,7 +21,7 @@ class ReflectionPropertyAccessor implements PropertyAccessorInterface
      *
      * @var array
      */
-    static $cache = [];
+    private static $cache = [];
 
     /**
      * {@inheritdoc}
