@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Mlo\FactoryBot\Fixture;
 
 use Faker\Generator as Faker;
+use Mlo\FactoryBot\Event;
 
 class Builder
 {
@@ -39,9 +40,9 @@ class Builder
     private $storage;
 
     /**
-     * @var null|callable
+     * @var array
      */
-    private $callback;
+    private $events;
 
     /**
      * @var int
@@ -56,13 +57,13 @@ class Builder
     /**
      * Constructor
      *
-     * @param string        $class
-     * @param callable      $definition
-     * @param array         $states
-     * @param callable      $instantiator
-     * @param Faker         $faker
-     * @param callable      $storage
-     * @param callable|null $callback
+     * @param string   $class
+     * @param callable $definition
+     * @param array    $states
+     * @param callable $instantiator
+     * @param Faker    $faker
+     * @param callable $storage
+     * @param array    $events
      */
     public function __construct(
         string $class,
@@ -71,7 +72,7 @@ class Builder
         callable $instantiator,
         Faker $faker,
         callable $storage,
-        callable $callback = null
+        array $events
     ) {
         $this->class = $class;
         $this->definition = $definition;
@@ -79,7 +80,7 @@ class Builder
         $this->instantiator = $instantiator;
         $this->faker = $faker;
         $this->storage = $storage;
-        $this->callback = $callback;
+        $this->events = $events;
     }
 
     /**
@@ -170,7 +171,9 @@ class Builder
     private function store(array $results)
     {
         array_map(function ($result) {
+            $this->fireEvent(Event::SAVE, $result);
             call_user_func($this->storage, $result);
+            $this->fireEvent(Event::SAVED, $result);
         }, $results);
     }
 
@@ -189,11 +192,9 @@ class Builder
             $this->getAttributes($attributes)
         ));
 
+        $this->fireEvent(Event::CREATE, $instance, $definition);
         (new Hydrator())($instance, $definition);
-
-        if ($this->callback) {
-            call_user_func($this->callback, $instance);
-        }
+        $this->fireEvent(Event::CREATED, $instance);
 
         return $instance;
     }
@@ -259,6 +260,19 @@ class Builder
             } else {
                 yield $key => $attribute;
             }
+        }
+    }
+
+    /**
+     * Fire event
+     *
+     * @param string $event
+     * @param array  ...$arguments
+     */
+    private function fireEvent(string $event, ...$arguments)
+    {
+        if ($event = ($this->events[$event] ?? null)) {
+            $event(...$arguments);
         }
     }
 }

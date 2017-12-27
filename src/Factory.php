@@ -29,7 +29,7 @@ class Factory
     /**
      * @var array
      */
-    private $callbacks = [];
+    private $events = [];
 
     /**
      * @var Faker
@@ -125,17 +125,18 @@ class Factory
     }
 
     /**
-     * Add a callback to a fixture
+     * Add event callback to the fixture
      *
      * @param string   $class
+     * @param string   $event
      * @param callable $callback
      * @param string   $name
      *
      * @return Factory
      */
-    public function callback(string $class, callable $callback, string $name = 'default'): self
+    public function on(string $class, string $event, callable $callback, string $name = 'default'): self
     {
-        $this->callbacks[$class][$name] = $callback;
+        $this->events[$class][$name][$event] = $callback;
 
         return $this;
     }
@@ -189,7 +190,7 @@ class Factory
             },
             $this->faker,
             $this->storage,
-            $this->callbacks[$class][$name] ?? null
+            $this->events[$class][$name] ?? []
         );
     }
 
