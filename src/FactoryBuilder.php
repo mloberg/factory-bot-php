@@ -90,7 +90,8 @@ class FactoryBuilder
     {
         $factory = new Factory(
             $this->faker ?? \Faker\Factory::create(),
-            $this->storage ?? function () {}
+            $this->storage ?? function () {
+            }
         );
 
         if ($this->paths) {

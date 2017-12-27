@@ -85,7 +85,7 @@ class FunctionalTest extends TestCase
     {
         $pass = false;
 
-        $this->factory->define(Foo::class, function ()  use (&$pass) {
+        $this->factory->define(Foo::class, function () use (&$pass) {
             return [
                 'foo' => function ($instance, array $attributes) use (&$pass) {
                     $pass = ($instance instanceof Foo) && ('baz' === ($attributes['bar'] ?? null));
