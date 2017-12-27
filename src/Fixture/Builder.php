@@ -163,28 +163,6 @@ class Builder
     }
 
     /**
-     * Get fixture attributes
-     *
-     * @param array $attributes
-     *
-     * @return array
-     */
-    public function raw(array $attributes = []): array
-    {
-        if (null === $this->amount) {
-            return $this->getRawAttributes($attributes);
-        }
-
-        if ($this->amount < 1) {
-            return [];
-        }
-
-        return array_map(function () use ($attributes) {
-            return $this->getRawAttributes($attributes);
-        }, range(1, $this->amount));
-    }
-
-    /**
      * Store results
      *
      * @param array $results
@@ -197,24 +175,6 @@ class Builder
     }
 
     /**
-     * Get raw attributes for fixture
-     *
-     * @param array $attributes
-     *
-     * @return array
-     */
-    private function getRawAttributes(array $attributes = [])
-    {
-        $definition = call_user_func($this->definition, $this->faker, $attributes);
-
-        foreach ($this->activeStates as $state) {
-            $definition = array_merge($definition, $this->applyState($state, $attributes));
-        }
-
-        return $this->expandAttributes(array_merge($definition, $attributes));
-    }
-
-    /**
      * Make a single fixture
      *
      * @param array $attributes
@@ -224,7 +184,10 @@ class Builder
     private function makeInstance(array $attributes = [])
     {
         $instance = call_user_func($this->instantiator, $this->faker);
-        $definition = $this->getRawAttributes($attributes);
+        $definition = iterator_to_array($this->expandAttributes(
+            $instance,
+            $this->getAttributes($attributes)
+        ));
 
         (new Hydrator())($instance, $definition);
 
@@ -233,6 +196,24 @@ class Builder
         }
 
         return $instance;
+    }
+
+    /**
+     * Get raw attributes for fixture
+     *
+     * @param array $attributes
+     *
+     * @return array
+     */
+    private function getAttributes(array $attributes = [])
+    {
+        $definition = call_user_func($this->definition, $this->faker, $attributes);
+
+        foreach ($this->activeStates as $state) {
+            $definition = array_merge($definition, $this->applyState($state, $attributes));
+        }
+
+        return array_merge($definition, $attributes);
     }
 
     /**
@@ -261,22 +242,23 @@ class Builder
     /**
      * Expand all attributes
      *
-     * @param array $attributes
+     * @param object $instance
+     * @param array  $attributes
      *
-     * @return array
+     * @return \Generator
      */
-    private function expandAttributes(array $attributes): array
+    private function expandAttributes($instance, array $attributes): \Generator
     {
-        foreach ($attributes as &$attribute) {
+        foreach ($attributes as $key => $attribute) {
             if (is_callable($attribute) && !is_string($attribute)) {
-                $attribute = $attribute($attributes);
-            }
-
-            if ($attribute instanceof static) {
-                $attribute = $attribute->make();
+                if (null !== ($value = $attribute($instance, $attributes))) {
+                    yield $key => $value;
+                }
+            } elseif ($attribute instanceof static) {
+                yield $key => $attribute->make();
+            } else {
+                yield $key => $attribute;
             }
         }
-
-        return $attributes;
     }
 }
