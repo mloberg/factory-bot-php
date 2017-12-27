@@ -55,6 +55,14 @@ class FunctionalTest extends TestCase
         $this->assertInstanceOf(Foo::class, $fixtures[1]);
     }
 
+    public function testFacade()
+    {
+        $fixture = $this->factory->build(User::class)->states('name')->make();
+
+        $this->assertInstanceOf(User::class, $fixture);
+        $this->assertNotNull($fixture->getName()->getFirst());
+    }
+
     /**
      * @group database
      */

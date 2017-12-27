@@ -203,6 +203,7 @@ class Factory
     public function load(string $path): self
     {
         $factory = $this;
+        Facade::setInstance($this);
 
         if (is_dir($path)) {
             /** @var SplFileInfo $file */

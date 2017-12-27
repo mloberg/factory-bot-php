@@ -50,6 +50,14 @@ class User
     private $name;
 
     /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        $this->name = new Name();
+    }
+
+    /**
      * Get Id
      *
      * @return int
