@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Mlo\FactoryBot;
 
 use Mlo\FactoryBot\Fixture\Builder;
-use Mlo\FactoryBot\Storage\StorageInterface;
 use Faker\Generator as Faker;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
@@ -38,17 +37,17 @@ class Factory
     private $faker;
 
     /**
-     * @var StorageInterface
+     * @var callable
      */
     private $storage;
 
     /**
      * Constructor
      *
-     * @param Faker            $faker
-     * @param StorageInterface $storage
+     * @param Faker    $faker
+     * @param callable $storage
      */
-    public function __construct(Faker $faker, StorageInterface $storage)
+    public function __construct(Faker $faker, callable $storage)
     {
         $this->faker = $faker;
         $this->storage = $storage;

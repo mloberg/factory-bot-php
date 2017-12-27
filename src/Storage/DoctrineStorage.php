@@ -7,7 +7,7 @@ namespace Mlo\FactoryBot\Storage;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 
-class DoctrineStorage implements StorageInterface
+class DoctrineStorage
 {
     /**
      * @var EntityManagerInterface
@@ -25,9 +25,11 @@ class DoctrineStorage implements StorageInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Save object to entity manager
+     *
+     * @param object $fixture
      */
-    public function save($fixture)
+    public function __invoke($fixture)
     {
         $metadata = $this->manager->getClassMetadata(get_class($fixture));
         $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);

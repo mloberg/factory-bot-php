@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Mlo\FactoryBot\Fixture;
 
-use Mlo\FactoryBot\Storage\StorageInterface;
 use Faker\Generator as Faker;
 
 class Builder
@@ -35,7 +34,7 @@ class Builder
     private $faker;
 
     /**
-     * @var StorageInterface
+     * @var callable
      */
     private $storage;
 
@@ -57,13 +56,13 @@ class Builder
     /**
      * Constructor
      *
-     * @param string           $class
-     * @param callable         $definition
-     * @param array            $states
-     * @param callable         $instantiator
-     * @param Faker            $faker
-     * @param StorageInterface $storage
-     * @param callable|null    $callback
+     * @param string        $class
+     * @param callable      $definition
+     * @param array         $states
+     * @param callable      $instantiator
+     * @param Faker         $faker
+     * @param callable      $storage
+     * @param callable|null $callback
      */
     public function __construct(
         string $class,
@@ -71,7 +70,7 @@ class Builder
         array $states,
         callable $instantiator,
         Faker $faker,
-        StorageInterface $storage,
+        callable $storage,
         callable $callback = null
     ) {
         $this->class = $class;
@@ -193,7 +192,7 @@ class Builder
     private function store(array $results)
     {
         array_map(function ($result) {
-            $this->storage->save($result);
+            call_user_func($this->storage, $result);
         }, $results);
     }
 

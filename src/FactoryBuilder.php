@@ -7,8 +7,6 @@ namespace Mlo\FactoryBot;
 use Doctrine\ORM\EntityManagerInterface;
 use Faker\Generator as Faker;
 use Mlo\FactoryBot\Storage\DoctrineStorage;
-use Mlo\FactoryBot\Storage\NullStorage;
-use Mlo\FactoryBot\Storage\StorageInterface;
 
 class FactoryBuilder
 {
@@ -18,7 +16,7 @@ class FactoryBuilder
     private $faker;
 
     /**
-     * @var StorageInterface
+     * @var callable
      */
     private $storage;
 
@@ -44,11 +42,11 @@ class FactoryBuilder
     /**
      * Set Storage
      *
-     * @param StorageInterface $storage
+     * @param callable $storage
      *
      * @return FactoryBuilder
      */
-    public function setStorage(StorageInterface $storage): self
+    public function setStorage(callable $storage): self
     {
         $this->storage = $storage;
 
@@ -92,7 +90,7 @@ class FactoryBuilder
     {
         $factory = new Factory(
             $this->faker ?? \Faker\Factory::create(),
-            $this->storage ?? new NullStorage()
+            $this->storage ?? function () {}
         );
 
         if ($this->paths) {
