@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace Mlo\FactoryBot\Test\Mock;
 
-use Mlo\FactoryBot\Storage\StorageInterface;
-
-class Storage implements StorageInterface
+class Storage
 {
     /**
      * @var array
      */
     private $stored = [];
 
-    public function save($fixture)
+    public function __invoke($fixture)
     {
         $this->stored[] = $fixture;
     }

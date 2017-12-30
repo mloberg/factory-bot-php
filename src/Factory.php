@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Mlo\FactoryBot;
 
 use Mlo\FactoryBot\Fixture\Builder;
-use Mlo\FactoryBot\Storage\StorageInterface;
 use Faker\Generator as Faker;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
@@ -30,7 +29,7 @@ class Factory
     /**
      * @var array
      */
-    private $callbacks = [];
+    private $events = [];
 
     /**
      * @var Faker
@@ -38,17 +37,17 @@ class Factory
     private $faker;
 
     /**
-     * @var StorageInterface
+     * @var callable
      */
     private $storage;
 
     /**
      * Constructor
      *
-     * @param Faker            $faker
-     * @param StorageInterface $storage
+     * @param Faker    $faker
+     * @param callable $storage
      */
-    public function __construct(Faker $faker, StorageInterface $storage)
+    public function __construct(Faker $faker, callable $storage)
     {
         $this->faker = $faker;
         $this->storage = $storage;
@@ -126,17 +125,18 @@ class Factory
     }
 
     /**
-     * Add a callback to a fixture
+     * Add event callback to the fixture
      *
      * @param string   $class
+     * @param string   $event
      * @param callable $callback
      * @param string   $name
      *
      * @return Factory
      */
-    public function callback(string $class, callable $callback, string $name = 'default'): self
+    public function on(string $class, string $event, callable $callback, string $name = 'default'): self
     {
-        $this->callbacks[$class][$name] = $callback;
+        $this->events[$class][$name][$event] = $callback;
 
         return $this;
     }
@@ -190,7 +190,7 @@ class Factory
             },
             $this->faker,
             $this->storage,
-            $this->callbacks[$class][$name] ?? null
+            $this->events[$class][$name] ?? []
         );
     }
 
@@ -204,6 +204,7 @@ class Factory
     public function load(string $path): self
     {
         $factory = $this;
+        Facade::setInstance($this);
 
         if (is_dir($path)) {
             /** @var SplFileInfo $file */

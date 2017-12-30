@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Mlo\FactoryBot\Fixture;
 
-use Mlo\FactoryBot\Storage\StorageInterface;
 use Faker\Generator as Faker;
+use Mlo\FactoryBot\Event;
 
 class Builder
 {
@@ -35,14 +35,14 @@ class Builder
     private $faker;
 
     /**
-     * @var StorageInterface
+     * @var callable
      */
     private $storage;
 
     /**
-     * @var null|callable
+     * @var array
      */
-    private $callback;
+    private $events;
 
     /**
      * @var int
@@ -57,13 +57,13 @@ class Builder
     /**
      * Constructor
      *
-     * @param string           $class
-     * @param callable         $definition
-     * @param array            $states
-     * @param callable         $instantiator
-     * @param Faker            $faker
-     * @param StorageInterface $storage
-     * @param callable|null    $callback
+     * @param string   $class
+     * @param callable $definition
+     * @param array    $states
+     * @param callable $instantiator
+     * @param Faker    $faker
+     * @param callable $storage
+     * @param array    $events
      */
     public function __construct(
         string $class,
@@ -71,8 +71,8 @@ class Builder
         array $states,
         callable $instantiator,
         Faker $faker,
-        StorageInterface $storage,
-        callable $callback = null
+        callable $storage,
+        array $events
     ) {
         $this->class = $class;
         $this->definition = $definition;
@@ -80,7 +80,7 @@ class Builder
         $this->instantiator = $instantiator;
         $this->faker = $faker;
         $this->storage = $storage;
-        $this->callback = $callback;
+        $this->events = $events;
     }
 
     /**
@@ -164,28 +164,6 @@ class Builder
     }
 
     /**
-     * Get fixture attributes
-     *
-     * @param array $attributes
-     *
-     * @return array
-     */
-    public function raw(array $attributes = []): array
-    {
-        if (null === $this->amount) {
-            return $this->getRawAttributes($attributes);
-        }
-
-        if ($this->amount < 1) {
-            return [];
-        }
-
-        return array_map(function () use ($attributes) {
-            return $this->getRawAttributes($attributes);
-        }, range(1, $this->amount));
-    }
-
-    /**
      * Store results
      *
      * @param array $results
@@ -193,26 +171,10 @@ class Builder
     private function store(array $results)
     {
         array_map(function ($result) {
-            $this->storage->save($result);
+            $this->fireEvent(Event::SAVE, $result);
+            call_user_func($this->storage, $result);
+            $this->fireEvent(Event::SAVED, $result);
         }, $results);
-    }
-
-    /**
-     * Get raw attributes for fixture
-     *
-     * @param array $attributes
-     *
-     * @return array
-     */
-    private function getRawAttributes(array $attributes = [])
-    {
-        $definition = call_user_func($this->definition, $this->faker, $attributes);
-
-        foreach ($this->activeStates as $state) {
-            $definition = array_merge($definition, $this->applyState($state, $attributes));
-        }
-
-        return $this->expandAttributes(array_merge($definition, $attributes));
     }
 
     /**
@@ -225,15 +187,34 @@ class Builder
     private function makeInstance(array $attributes = [])
     {
         $instance = call_user_func($this->instantiator, $this->faker);
-        $definition = $this->getRawAttributes($attributes);
+        $definition = iterator_to_array($this->expandAttributes(
+            $instance,
+            $this->getAttributes($attributes)
+        ));
 
+        $this->fireEvent(Event::CREATE, $instance, $definition);
         (new Hydrator())($instance, $definition);
-
-        if ($this->callback) {
-            call_user_func($this->callback, $instance);
-        }
+        $this->fireEvent(Event::CREATED, $instance);
 
         return $instance;
+    }
+
+    /**
+     * Get raw attributes for fixture
+     *
+     * @param array $attributes
+     *
+     * @return array
+     */
+    private function getAttributes(array $attributes = [])
+    {
+        $definition = call_user_func($this->definition, $this->faker, $attributes);
+
+        foreach ($this->activeStates as $state) {
+            $definition = array_merge($definition, $this->applyState($state, $attributes));
+        }
+
+        return array_merge($definition, $attributes);
     }
 
     /**
@@ -262,22 +243,36 @@ class Builder
     /**
      * Expand all attributes
      *
-     * @param array $attributes
+     * @param object $instance
+     * @param array  $attributes
      *
-     * @return array
+     * @return \Generator
      */
-    private function expandAttributes(array $attributes): array
+    private function expandAttributes($instance, array $attributes): \Generator
     {
-        foreach ($attributes as &$attribute) {
+        foreach ($attributes as $key => $attribute) {
             if (is_callable($attribute) && !is_string($attribute)) {
-                $attribute = $attribute($attributes);
-            }
-
-            if ($attribute instanceof static) {
-                $attribute = $attribute->make();
+                if (null !== ($value = $attribute($instance, $attributes))) {
+                    yield $key => $value;
+                }
+            } elseif ($attribute instanceof static) {
+                yield $key => $attribute->make();
+            } else {
+                yield $key => $attribute;
             }
         }
+    }
 
-        return $attributes;
+    /**
+     * Fire event
+     *
+     * @param string $event
+     * @param array  ...$arguments
+     */
+    private function fireEvent(string $event, ...$arguments)
+    {
+        if ($event = ($this->events[$event] ?? null)) {
+            $event(...$arguments);
+        }
     }
 }

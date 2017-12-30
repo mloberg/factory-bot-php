@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mlo\FactoryBot\Test;
 
+use Mlo\FactoryBot\Event;
 use Mlo\FactoryBot\Factory;
 use Mlo\FactoryBot\Fixture\Builder;
 use Mlo\FactoryBot\Test\Mock\Storage;
@@ -114,14 +115,14 @@ class FactoryTest extends TestCase
         $this->assertEquals('Bar', $fixture->getLast());
     }
 
-    public function testCallback()
+    public function testEvents()
     {
         $called = false;
 
         $this->factory->define(Foo::class, function () {
             return [];
         });
-        $factory = $this->factory->callback(Foo::class, function (Foo $foo) use (&$called) {
+        $factory = $this->factory->on(Foo::class, Event::CREATE, function (Foo $foo) use (&$called) {
             $called = true;
         });
 

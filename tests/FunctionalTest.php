@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Mlo\FactoryBot\Test;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Faker\Generator;
 use Mlo\FactoryBot\Factory;
 use Mlo\FactoryBot\Test\Model\Bar;
 use Mlo\FactoryBot\Test\Model\Foo;
@@ -53,6 +54,73 @@ class FunctionalTest extends TestCase
         $this->assertCount(2, $fixtures);
         $this->assertInstanceOf(Foo::class, $fixtures[0]);
         $this->assertInstanceOf(Foo::class, $fixtures[1]);
+    }
+
+    public function testFacade()
+    {
+        $fixture = $this->factory->build(User::class)->states('name')->make();
+
+        $this->assertInstanceOf(User::class, $fixture);
+        $this->assertNotNull($fixture->getName()->getFirst());
+    }
+
+    public function testAttributes()
+    {
+        $pass = false;
+
+        $this->factory->define(Foo::class, function (Generator $faker, array $attributes = []) use (&$pass) {
+            $pass = 'bar' === ($attributes['foo'] ?? null);
+
+            return [
+                'bar' => 'baz',
+            ];
+        }, 'test');
+
+        $this->factory->build(Foo::class, 'test')->make(['foo' => 'bar']);
+
+        $this->assertTrue($pass);
+    }
+
+    public function testAttributeCallback()
+    {
+        $pass = false;
+
+        $this->factory->define(Foo::class, function ()  use (&$pass) {
+            return [
+                'foo' => function ($instance, array $attributes) use (&$pass) {
+                    $pass = ($instance instanceof Foo) && ('baz' === ($attributes['bar'] ?? null));
+
+                    return 'foo';
+                },
+            ];
+        }, 'attribute');
+
+        $fixture = $this->factory->build(Foo::class, 'attribute')->make(['bar' => 'baz']);
+
+        $this->assertTrue($pass);
+        $this->assertEquals('foo', $fixture->getFoo());
+    }
+
+    public function testAttributeCallbackReturnNullIsIgnored()
+    {
+        $pass = false;
+
+        $this->factory->define(Bar::class, function () use (&$pass) {
+            return [
+                'foo' => function (Bar $instance) use (&$pass) {
+                    $pass = true;
+                    $instance->setBar('test');
+                },
+                'baz' => null,
+            ];
+        }, 'test');
+
+        $fixture = $this->factory->build(Bar::class, 'test')->make();
+
+        $this->assertTrue($pass);
+        $this->assertNull($fixture->getFoo());
+        $this->assertEquals('bar_test', $fixture->getBar());
+        $this->assertNull($fixture->getBaz());
     }
 
     /**
