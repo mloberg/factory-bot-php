@@ -186,7 +186,7 @@ class Builder
      */
     private function makeInstance(array $attributes = [])
     {
-        $instance = call_user_func($this->instantiator, $this->faker);
+        $instance = call_user_func($this->instantiator, $this->faker, $attributes);
         $definition = iterator_to_array($this->expandAttributes(
             $instance,
             $this->getAttributes($attributes)
