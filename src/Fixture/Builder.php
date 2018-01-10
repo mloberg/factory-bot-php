@@ -112,20 +112,6 @@ class Builder
     }
 
     /**
-     * Lazy load fixture
-     *
-     * @param array $attributes
-     *
-     * @return \Closure
-     */
-    public function lazy(array $attributes = []): \Closure
-    {
-        return function () use ($attributes) {
-            return $this->create($attributes);
-        };
-    }
-
-    /**
      * Create and persist fixture(s)
      *
      * @param array $attributes
@@ -187,10 +173,7 @@ class Builder
     private function makeInstance(array $attributes = [])
     {
         $instance = call_user_func($this->instantiator, $this->faker, $attributes);
-        $definition = iterator_to_array($this->expandAttributes(
-            $instance,
-            $this->getAttributes($attributes)
-        ));
+        $definition = $this->getAttributes($attributes);
 
         $this->fireEvent(Event::CREATE, $instance, $definition);
         (new Hydrator())($instance, $definition);
@@ -208,59 +191,55 @@ class Builder
      */
     private function getAttributes(array $attributes = [])
     {
-        $definition = call_user_func($this->definition, $this->faker, $attributes);
+        $definition = call_user_func($this->definition, $this->faker);
 
         foreach ($this->activeStates as $state) {
-            $definition = array_merge($definition, $this->applyState($state, $attributes));
+            $definition = array_merge($definition, $this->applyState($state));
         }
 
-        return array_merge($definition, $attributes);
+        $callbacks = array_filter($definition, function ($item) {
+            return $item instanceof \Closure;
+        });
+
+        return array_merge(
+            array_diff_key($definition, $callbacks),
+            $this->applyAttributes($attributes, $callbacks)
+        );
     }
 
     /**
      * Apply states
      *
      * @param string $state
-     * @param array  $attributes
      *
      * @return array
      */
-    private function applyState(string $state, array $attributes): array
+    private function applyState(string $state): array
     {
         if (!isset($this->states[$state])) {
             throw new \InvalidArgumentException(sprintf('%s is not a valid state for %s.', $state, $this->class));
         }
 
-        $stateAttributes = $this->states[$state];
+        $attributes = $this->states[$state];
 
-        if (!is_callable($stateAttributes)) {
-            return $stateAttributes;
-        }
-
-        return call_user_func($stateAttributes, $this->faker, $attributes);
+        return is_callable($attributes) ? call_user_func($attributes, $this->faker) : $attributes;
     }
 
     /**
-     * Expand all attributes
+     * Apply attribute callbacks
      *
-     * @param object $instance
-     * @param array  $attributes
+     * @param array $attributes
+     * @param array $callbacks
      *
-     * @return \Generator
+     * @return array
      */
-    private function expandAttributes($instance, array $attributes): \Generator
+    private function applyAttributes(array $attributes, array $callbacks): array
     {
-        foreach ($attributes as $key => $attribute) {
-            if (is_callable($attribute) && !is_string($attribute)) {
-                if (null !== ($value = $attribute($instance, $attributes))) {
-                    yield $key => $value;
-                }
-            } elseif ($attribute instanceof static) {
-                yield $key => $attribute->make();
-            } else {
-                yield $key => $attribute;
-            }
+        foreach (array_intersect_key($attributes, $callbacks) as $key => $value) {
+            $attributes[$key] = $callbacks[$key]($value, $this->faker);
         }
+
+        return $attributes;
     }
 
     /**

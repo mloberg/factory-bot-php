@@ -64,63 +64,23 @@ class FunctionalTest extends TestCase
         $this->assertNotNull($fixture->getName()->getFirst());
     }
 
-    public function testAttributes()
-    {
-        $pass = false;
-
-        $this->factory->define(Foo::class, function (Generator $faker, array $attributes = []) use (&$pass) {
-            $pass = 'bar' === ($attributes['foo'] ?? null);
-
-            return [
-                'bar' => 'baz',
-            ];
-        }, 'test');
-
-        $this->factory->build(Foo::class, 'test')->make(['foo' => 'bar']);
-
-        $this->assertTrue($pass);
-    }
-
     public function testAttributeCallback()
     {
-        $pass = false;
-
-        $this->factory->define(Foo::class, function () use (&$pass) {
+        $this->factory->define(Foo::class, function () {
             return [
-                'foo' => function ($instance, array $attributes) use (&$pass) {
-                    $pass = ($instance instanceof Foo) && ('baz' === ($attributes['bar'] ?? null));
-
-                    return 'foo';
+                'foo' => function ($value, Generator $faker) {
+                    return 'foo' === $value ? $faker->word : 'bar';
                 },
             ];
         }, 'attribute');
 
-        $fixture = $this->factory->build(Foo::class, 'attribute')->make(['bar' => 'baz']);
+        $fixture = $this->factory->build(Foo::class, 'attribute')->make(['foo' => 'foo']);
+        $fixture2 = $this->factory->build(Foo::class, 'attribute')->make(['foo' => 'foobar']);
+        $fixture3 = $this->factory->build(Foo::class, 'attribute')->make(['foo' => uniqid()]);
 
-        $this->assertTrue($pass);
-        $this->assertEquals('foo', $fixture->getFoo());
-    }
-
-    public function testAttributeCallbackReturnNullIsIgnored()
-    {
-        $pass = false;
-
-        $this->factory->define(Bar::class, function () use (&$pass) {
-            return [
-                'foo' => function (Bar $instance) use (&$pass) {
-                    $pass = true;
-                    $instance->setBar('test');
-                },
-                'baz' => null,
-            ];
-        }, 'test');
-
-        $fixture = $this->factory->build(Bar::class, 'test')->make();
-
-        $this->assertTrue($pass);
-        $this->assertNull($fixture->getFoo());
-        $this->assertEquals('bar_test', $fixture->getBar());
-        $this->assertNull($fixture->getBaz());
+        $this->assertNotEquals('foo', $fixture->getFoo());
+        $this->assertEquals('bar', $fixture2->getFoo());
+        $this->assertEquals('bar', $fixture3->getFoo());
     }
 
     /**

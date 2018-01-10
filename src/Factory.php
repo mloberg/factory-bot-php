@@ -95,13 +95,13 @@ class Factory
     /**
      * Add a state to a class
      *
-     * @param string   $class
-     * @param string   $state
-     * @param callable $attributes
+     * @param string         $class
+     * @param string         $state
+     * @param callable|array $attributes
      *
      * @return Factory
      */
-    public function state(string $class, string $state, callable $attributes): self
+    public function state(string $class, string $state, $attributes): self
     {
         $this->states[$class][$state] = $attributes;
 
