@@ -201,10 +201,17 @@ class Builder
             return $item instanceof \Closure;
         });
 
-        return array_merge(
+        $definition = array_merge(
             array_diff_key($definition, $callbacks),
-            $this->applyAttributes($attributes, $callbacks)
+            $this->applyCallbacks($callbacks, $attributes)
         );
+
+        // Set child properties last
+        uksort($definition, function ($a, $b) {
+            return substr_count($a, '.') <=> substr_count($b, '.');
+        });
+
+        return $definition;
     }
 
     /**
@@ -226,17 +233,23 @@ class Builder
     }
 
     /**
-     * Apply attribute callbacks
+     * Apply callbacks
      *
-     * @param array $attributes
      * @param array $callbacks
+     * @param array $attributes
      *
      * @return array
      */
-    private function applyAttributes(array $attributes, array $callbacks): array
+    private function applyCallbacks(array $callbacks, array $attributes): array
     {
-        foreach (array_intersect_key($attributes, $callbacks) as $key => $value) {
-            $attributes[$key] = $callbacks[$key]($value, $this->faker);
+        foreach ($callbacks as $key => $callback) {
+            $value = $attributes[$key] ?? null;
+
+            if (false === $value = $callback($value, $this->faker)) {
+                continue;
+            }
+
+            $attributes[$key] = $value;
         }
 
         return $attributes;
